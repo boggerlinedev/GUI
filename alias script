@@ -1,0 +1,914 @@
+
+local players = game:GetService("Players")
+local lplr = players.LocalPlayer
+local oldchar = lplr.Character
+local cam = workspace.CurrentCamera
+local uis = game:GetService("UserInputService")
+
+local speedval = {["Value"] = 33}
+
+local function isAlive(plr)
+	if plr then
+		return plr and plr.Character and plr.Character.Parent ~= nil and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Head") and plr.Character:FindFirstChild("Humanoid")
+	end
+	return lplr and lplr.Character and lplr.Character.Parent ~= nil and lplr.Character:FindFirstChild("HumanoidRootPart") and lplr.Character:FindFirstChild("Head") and lplr.Character:FindFirstChild("Humanoid")
+end
+
+local function runcode(func)
+	func()
+end
+
+local function playsound(id, volume) 
+	local sound = Instance.new("Sound")
+	sound.Parent = workspace
+	sound.SoundId = id
+	sound.PlayOnRemove = true 
+	if volume then 
+		sound.Volume = volume
+	end
+	sound:Destroy()
+end
+
+local function playanimation(id) 
+	if isAlive() then 
+		local animation = Instance.new("Animation")
+		animation.AnimationId = id
+		local animatior = lplr.Character.Humanoid.Animator
+		animatior:LoadAnimation(animation):Play()
+	end
+end
+
+function isNumber(str)
+	if tonumber(str) ~= nil or str == 'inf' then
+		return true
+	end
+end
+
+function getinv(plr)
+	local plr = plr or lplr
+	local thingy, thingytwo = pcall(function() return InventoryUtil.getInventory(plr) end)
+	return (thingy and thingytwo or {
+		items = {},
+		armor = {},
+		hand = nil
+	})
+end
+
+
+function getsword()
+	local sd
+	local higherdamage
+	local swordslots
+	local swords = getinv().items
+	for i, v in pairs(swords) do
+		if v.itemType:lower():find("sword") or v.itemType:lower():find("blade") then
+			if higherdamage == nil or itemstuff[v.itemType].sword.damage > higherdamage then
+				sd = v
+				higherdamage = itemstuff[v.itemType].sword.damage
+				swordslots = i
+			end
+		end
+	end
+	return sd, swordslots
+end
+
+
+
+
+
+local function getremote(tab)
+	for i,v in pairs(tab) do
+		if v == "Client" then
+			return tab[i + 1]
+		end
+	end
+	return ""
+end
+
+local function hvFunc(cock)
+	return {hashedval = cock}
+end
+
+local function targetCheck(plr, check)
+	return (check and plr.Character.Humanoid.Health > 0 and plr.Character:FindFirstChild("ForceField") == nil or check == false)
+end
+
+local function isPlayerTargetable(plr, target)
+	return plr ~= lplr and plr and isAlive(plr) and targetCheck(plr, target)
+end
+
+local function GetAllNearestHumanoidToPosition(distance, amount)
+	local returnedplayer = {}
+	local currentamount = 0
+	if entity.isAlive then -- alive check
+		for i, v in pairs(game.Players:GetChildren()) do -- loop through players
+			if isPlayerTargetable((v), true, true, v.Character ~= nil) and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Head") and currentamount < amount then -- checks
+				local mag = (lplr.Character.HumanoidRootPart.Position - v.Character:FindFirstChild("HumanoidRootPart").Position).magnitude
+				if mag <= distance then -- mag check
+					table.insert(returnedplayer, v)
+					currentamount = currentamount + 1
+				end
+			end
+		end
+		for i2,v2 in pairs(game:GetService("CollectionService"):GetTagged("Monster")) do -- monsters
+			if v2:FindFirstChild("HumanoidRootPart") and currentamount < amount and v2.Name ~= "Duck" then -- no duck
+				local mag = 
+(lplr.Character.HumanoidRootPart.Position - v.Character:FindFirstChild("HumanoidRootPart").Position).magnitude
+				if mag <= distance then -- mag check
+					table.insert(returnedplayer, v)
+					currentamount = currentamount + 1
+				end
+			end
+		end
+		for i2,v2 in pairs(game:GetService("CollectionService"):GetTagged("Monster")) do -- monsters
+			if v2:FindFirstChild("HumanoidRootPart") and currentamount < amount and v2.Name ~= "Duck" then -- no duck
+				local mag = (lplr.Character.HumanoidRootPart.Position - v2.HumanoidRootPart.Position).magnitude
+				if mag <= distance then -- magcheck
+					table.insert(returnedplayer, {Name = (v2 and v2.Name or "Monster"), UserId = 1443379645, Character = v2}) -- monsters are npcs so I have to create a fake player for target info
+					currentamount = currentamount + 1
+				end
+			end
+		end
+	end
+	return returnedplayer -- table of attackable entities
+end
+
+local function BindToRenderStep(name, num, func)
+	if RenderStepTable[name] == nil then
+		RenderStepTable[name] = game:GetService("RunService").RenderStepped:connect(func)
+	end
+end
+local function UnbindFromRenderStep(name)
+	if RenderStepTable[name] then
+		RenderStepTable[name]:Disconnect()
+		RenderStepTable[name] = nil
+	end
+end
+
+local function BindToStepped(name, num, func)
+	if StepTable[name] == nil then
+		StepTable[name] = game:GetService("RunService").Stepped:connect(func)
+	end
+end
+local function UnbindFromStepped(name)
+	if StepTable[name] then
+		StepTable[name]:Disconnect()
+		StepTable[name] = nil
+	end
+end
+
+
+
+function blocks(bed)
+	local aboveblocks = 0
+	local Blocks = getbedsblocks()
+	for _,Block in pairs(Blocks) do
+		if Block.Position.X == bed.X and Block.Position.Z == bed.Z and Block.Name ~= "bed" and (Block.Position.Y - bed.Y) <= 9 and Block.Position.Y > bed.Y then
+			aboveblocks = aboveblocks + 1
+		end
+	end
+	return aboveblocks
+end
+
+function nuker()
+	local beds = getbeds()
+	for _,bed in pairs(beds) do
+		local bedmagnitude = (bed.Position - game.Players.LocalPlayer.Character.PrimaryPart.Position).Magnitude
+		if bedmagnitude < 27 then
+			local upnum = blocks(bed.Position)
+			local x = math.round(bed.Position.X/3)
+			local y = math.round(bed.Position.Y/3) + upnum
+			local z = math.round(bed.Position.Z/3)
+			game:GetService("ReplicatedStorage").rbxts_include.node_modules.net.out._NetManaged.DamageBlock:InvokeServer({
+				["blockRef"] = {
+					["blockPosition"] = Vector3.new(x,y,z)
+				},
+				["hitPosition"] = Vector3.new(x,y,z),
+				["hitNormal"] = Vector3.new(x,y,z),
+			})
+		end
+	end
+end
+
+local entity = loadstring(game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/main/Libraries/entityHandler.lua", true))()
+
+
+do
+	local oldcharacteradded = entity.characterAdded
+	entity.characterAdded = function(plr, char, localcheck)
+		return oldcharacteradded(plr, char, localcheck, function() end)
+	end
+	entity.fullEntityRefresh()
+end
+
+local function isAlive(plr)
+	if plr then
+		return plr and plr.Character and plr.Character.Parent ~= nil and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Head") and plr.Character:FindFirstChild("Humanoid")
+	end
+	return lplr and lplr.Character and lplr.Character.Parent ~= nil and lplr.Character:FindFirstChild("HumanoidRootPart") and lplr.Character:FindFirstChild("Head") and lplr.Character:FindFirstChild("Humanoid")
+end
+
+local function runcode(func)
+	func()
+end
+
+local function playsound(id, volume) 
+	local sound = Instance.new("Sound")
+	sound.Parent = workspace
+	sound.SoundId = id
+	sound.PlayOnRemove = true 
+	if volume then 
+		sound.Volume = volume
+	end
+	sound:Destroy()
+end
+
+local function playanimation(id) 
+	if isAlive() then 
+		local animation = Instance.new("Animation")
+		animation.AnimationId = id
+		local animatior = lplr.Character.Humanoid.Animator
+		animatior:LoadAnimation(animation):Play()
+	end
+end
+
+
+
+
+
+
+
+
+local function BindToStepped(name, num, func)
+	if StepTable[name] == nil then
+		StepTable[name] = game:GetService("RunService").Stepped:connect(func)
+	end
+end
+local function UnbindFromStepped(name)
+	if StepTable[name] then
+		StepTable[name]:Disconnect()
+		StepTable[name] = nil
+	end
+end
+
+
+
+local entity = loadstring(game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/main/Libraries/entityHandler.lua", true))()
+
+
+do
+	local oldcharacteradded = entity.characterAdded
+	entity.characterAdded = function(plr, char, localcheck)
+		return oldcharacteradded(plr, char, localcheck, function() end)
+	end
+	entity.fullEntityRefresh()
+end
+
+
+
+
+local function isAlive(plr)
+	if plr then
+		return plr and plr.Character and plr.Character.Parent ~= nil and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Head") and plr.Character:FindFirstChild("Humanoid")
+	end
+	return lplr and lplr.Character and lplr.Character.Parent ~= nil and lplr.Character:FindFirstChild("HumanoidRootPart") and lplr.Character:FindFirstChild("Head") and lplr.Character:FindFirstChild("Humanoid")
+end
+
+local function runcode(func)
+	func()
+end
+
+
+local entity = loadstring(game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/main/Libraries/entityHandler.lua", true))()
+
+
+do
+	local oldcharacteradded = entity.characterAdded
+	entity.characterAdded = function(plr, char, localcheck)
+		return oldcharacteradded(plr, char, localcheck, function() end)
+	end
+	entity.fullEntityRefresh()
+end
+
+
+makefolder("Alia")
+makefolder("Alia/assets")
+
+
+
+local getcustomasset = getsynasset or getcustomasset
+ 
+
+local function getasset(path)
+	if not isfile(path) then
+		local req = requestfunc({
+			Url = "https://raw.githubusercontent.com/joeengo/Future/main/"..path:gsub("Alia/assets", "assets"),
+			Method = "GET"
+		})
+        print("[Future] downloading "..path.." asset.")
+		writefile(path, req.Body)
+        print("[Future] downloaded "..path.." asset successfully!")
+	end
+	return getcustomasset(path) 
+end
+
+wait()
+local img_474172996 = game:HttpGet("https://tr.rbxcdn.com/1fd06dde4f7779c86a7677463a90686a/420/420/Image/Png")
+writefile("Alia/assets/Notification icon.png", tostring(img_474172996)) -- make a folder
+
+
+function noti(name)
+	local ScreenGui = Instance.new("ScreenGui")
+	local Frame = Instance.new("Frame")
+	local ImageLabel = Instance.new("ImageLabel")
+	local TextLabel = Instance.new("TextLabel")
+	
+	--Properties:
+	
+	ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+	
+	Frame.Parent = ScreenGui
+	Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	Frame.BackgroundTransparency = 0.400
+	Frame.BorderSizePixel = 0
+	Frame.Position = UDim2.new(1.99000001, 0, 0.873000026, 0)
+	Frame.Size = UDim2.new(0, 178, 0, 52)
+	
+	ImageLabel.Parent = Frame
+	ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	ImageLabel.BackgroundTransparency = 1.000
+	ImageLabel.Position = UDim2.new(-0.338343024, 0, -0.973456025, 0)
+	ImageLabel.Size = UDim2.new(0, 162, 0, 152)
+	ImageLabel.Image = getasset("Alia/assets/Notification icon.png")
+	
+	TextLabel.Parent = Frame
+	TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	TextLabel.BackgroundTransparency = 1.000
+	TextLabel.Position = UDim2.new(0.207864761, 0, -0.0192308426, 0)
+	TextLabel.Size = UDim2.new(0, 103, 0, 51)
+	TextLabel.Font = Enum.Font.SourceSans
+	TextLabel.Text = name
+	TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TextLabel.TextSize = 30.000
+	
+	-- Scripts:
+	
+	local function CZSOVU_fake_script() -- Frame.LocalScript 
+		local script = Instance.new('LocalScript', Frame)
+	
+		wait(0.5)
+		script.Parent:TweenPosition(UDim2.new(0.86, 0,0.873, 0, "Out", "Sine", 1))
+		
+		wait(1.4)
+		script.Parent:TweenPosition(UDim2.new(1.99, 0,0.873, 0, "Out", "Sine", 1))
+	end
+	coroutine.wrap(CZSOVU_fake_script)()
+	end
+	
+
+local UIS = game:GetService("UserInputService")
+local TS = game:GetService("TweenService")
+local WORKSPACE = game:GetService("Workspace")
+local PLAYERS = game:GetService("Players")
+local COREGUI = game:GetService("CoreGui")
+local lplr = PLAYERS.LocalPlayer
+local mouse = lplr:GetMouse()
+
+local ScreenGui = Instance.new("ScreenGui")
+local Combat = Instance.new("Frame")
+local Container = Instance.new("Frame")
+local UIGridLayout = Instance.new("UIGridLayout")
+local aura = Instance.new("TextButton")
+local TextLabel = Instance.new("TextLabel")
+local Blatant = Instance.new("Frame")
+local TextLabel_2 = Instance.new("TextLabel")
+local Container_2 = Instance.new("Frame")
+local UIGridLayout_2 = Instance.new("UIGridLayout")
+local speed = Instance.new("TextButton")
+local antiaim = Instance.new("TextButton")
+local TP = Instance.new("TextButton")
+local Render = Instance.new("Frame")
+local TextLabel_3 = Instance.new("TextLabel")
+local Container_3 = Instance.new("Frame")
+local UIGridLayout_3 = Instance.new("UIGridLayout")
+local Esp = Instance.new("TextButton")
+local Tracers = Instance.new("TextButton")
+local ImageLabel = Instance.new("ImageLabel")
+
+
+
+--boosl
+local Tracerb = false
+local TPB = false
+local speedB = false
+local auraB = flse
+local flyB = true
+--Properties:
+
+ScreenGui.Parent = game.CoreGui
+
+Combat.Name = "Combat"
+Combat.Parent = ScreenGui
+Combat.BackgroundColor3 = Color3.fromRGB(16, 16, 16)
+Combat.Position = UDim2.new(0.23201853, 0, 0.0241448693, 0)
+Combat.Size = UDim2.new(0, 136, 0, 324)
+
+Container.Name = "Container"
+Container.Parent = Combat
+Container.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Container.BackgroundTransparency = 1.000
+Container.Position = UDim2.new(0, 0, 0.0679012313, 0)
+Container.Size = UDim2.new(0, 136, 0, 302)
+
+UIGridLayout.Parent = Container
+UIGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIGridLayout.CellPadding = UDim2.new(0, 5, 0, 0)
+UIGridLayout.CellSize = UDim2.new(0, 136, 0, 34)
+
+aura.Name = "aura"
+aura.Parent = Container
+aura.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+aura.BorderSizePixel = 0
+aura.Size = UDim2.new(0, 200, 0, 50)
+aura.AutoButtonColor = false
+aura.Font = Enum.Font.SourceSans
+aura.Text = "Kill aura"
+aura.TextColor3 = Color3.fromRGB(255, 255, 255)
+aura.TextSize = 30.000
+aura.MouseButton1Click:Connect(function()
+	if auraB == false then
+		auraB = true
+		noti("aura on")
+		aura.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+
+		while auraB == true do
+
+local args = {
+    [1] = "mouse1",
+    [2] = true
+}
+
+game:GetService("Players").LocalPlayer.Character.combat.update:FireServer(unpack(args))
+end
+
+	else
+		auraB = false
+		noti("aura off")
+		aura.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+	end
+end)
+TextLabel.Parent = Combat
+TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.BackgroundTransparency = 1.000
+TextLabel.Position = UDim2.new(0.0220588446, 0, 0, 0)
+TextLabel.Size = UDim2.new(0, 133, 0, 22)
+TextLabel.Font = Enum.Font.SourceSans
+TextLabel.Text = "Combat"
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.TextSize = 30.000
+
+Blatant.Name = "Blatant"
+Blatant.Parent = ScreenGui
+Blatant.BackgroundColor3 = Color3.fromRGB(16, 16, 16)
+Blatant.Position = UDim2.new(0.348559439, 0, 0.0241448693, 0)
+Blatant.Size = UDim2.new(0, 136, 0, 426)
+
+TextLabel_2.Parent = Blatant
+TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_2.BackgroundTransparency = 1.000
+TextLabel_2.Position = UDim2.new(0.0220588446, 0, 0, 0)
+TextLabel_2.Size = UDim2.new(0, 133, 0, 22)
+TextLabel_2.Font = Enum.Font.SourceSans
+TextLabel_2.Text = "Blatant"
+TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_2.TextSize = 30.000
+
+Container_2.Name = "Container"
+Container_2.Parent = Blatant
+Container_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Container_2.BackgroundTransparency = 1.000
+Container_2.Position = UDim2.new(0, 0, 0.0679012537, 0)
+Container_2.Size = UDim2.new(0, 136, 0, 397)
+
+UIGridLayout_2.Parent = Container_2
+UIGridLayout_2.SortOrder = Enum.SortOrder.LayoutOrder
+UIGridLayout_2.CellPadding = UDim2.new(0, 5, 0, 0)
+UIGridLayout_2.CellSize = UDim2.new(0, 136, 0, 34)
+
+speed.Name = "speed"
+speed.Parent = Container_2
+speed.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+speed.BorderSizePixel = 0
+speed.Size = UDim2.new(0, 200, 0, 50)
+speed.AutoButtonColor = false
+speed.Font = Enum.Font.SourceSans
+speed.Text = "speed(press shift)"
+speed.TextColor3 = Color3.fromRGB(255, 255, 255)
+speed.TextSize = 30.000
+speed.MouseButton1Click:Connect(function()
+	speed.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+	noti("cant be turn off sorry ")
+local Player = game:GetService'Players'.LocalPlayer;
+local UIS = game:GetService'UserInputService';
+
+UIS.InputBegan:connect(function(UserInput)
+        if UserInput.UserInputType == Enum.UserInputType.Keyboard and UserInput.KeyCode == Enum.KeyCode.LeftShift then
+            _G.Running = true
+                while wait(0.005) and _G.Running == true do
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame + game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.lookVector * 0.5
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame + game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.lookVector * 0.5
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame + game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.lookVector * 0.5
+end
+        end
+end)
+UIS.InputEnded:connect(function(UserInput)
+        if UserInput.UserInputType == Enum.UserInputType.Keyboard and UserInput.KeyCode == Enum.KeyCode.LeftShift then
+                _G.Running = false
+        end
+end)
+	
+
+end)
+
+antiaim.Name = "Fly"
+antiaim.Parent = Container_2
+antiaim.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+antiaim.BorderSizePixel = 0
+antiaim.Size = UDim2.new(0, 200, 0, 50)
+antiaim.AutoButtonColor = false
+antiaim.Font = Enum.Font.SourceSans
+antiaim.Text = "Fly press z"
+antiaim.TextColor3 = Color3.fromRGB(255, 255, 255)
+antiaim.TextSize = 30.000
+antiaim.MouseButton1Click:Connect(function ()
+	antiaim.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+	noti("fly on")
+	
+getgenv().HopDelay = 20 -- Default Value = 20
+getgenv().Boost = true -- Default Value = true
+getgenv().BoostStuds = 0.2 -- Default Value = 0.2
+getgenv().HopBoost = true -- Default Value = true
+getgenv().HopBoostStuds = 1.5 -- Default Value = 1.5
+
+-- Main
+
+if not getgenv().BedwarsHopToggled then
+    getgenv().BedwarsHopToggled = true
+else
+    return
+end
+local UIS = game:GetService("UserInputService")
+local Toggled = false
+
+UIS.InputBegan:Connect(function(Key, Event)
+    if Event then return end
+    if Key.UserInputType == Enum.UserInputType.Keyboard then
+        if Key.KeyCode == Enum.KeyCode.Z then
+            Toggled = not Toggled
+            local CHead = game.Players.LocalPlayer.Character.Head.Position
+            local CY = game.Players.LocalPlayer.Character.HumanoidRootPart.Position.Y
+            local i = 0
+            local UpDebounce = 0
+            local DownDebounce = 0
+            
+            if Toggled then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(Vector3.new(0, 1, 0))
+            end
+            while Toggled do
+                game.Players.LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+                i = i + 1
+                
+                local AntiFall = Instance.new("Part", game.Workspace)
+                local Mark = Instance.new("Part", game.Workspace)
+                AntiFall.Name = "CollidePart"
+                Mark.Name = "Mark"
+                AntiFall.Anchored = true
+                Mark.Anchored = true
+                AntiFall.Size = Vector3.new(3, 1, 3)
+                Mark.Size = Vector3.new(3, 0.01, 3)
+                AntiFall.Position = Vector3.new(game.Players.LocalPlayer.Character.HumanoidRootPart.Position.X, CY - 3.499, game.Players.LocalPlayer.Character.HumanoidRootPart.Position.Z)
+                Mark.Position = Vector3.new(game.Players.LocalPlayer.Character.HumanoidRootPart.Position.X, CHead.Y, game.Players.LocalPlayer.Character.HumanoidRootPart.Position.Z) + Vector3.new(0, 1, 0)
+                AntiFall.Material = Enum.Material.Neon
+                Mark.Material = Enum.Material.Neon
+                AntiFall.BrickColor = BrickColor.new("Really blue")
+                if Mark.Position.Y > game.Players.LocalPlayer.Character.HumanoidRootPart.Position.Y then
+                    Mark.BrickColor = BrickColor.new("Lime green")
+                else
+                    Mark.BrickColor = BrickColor.new("Really red")
+                end
+                Mark.CanCollide = false
+                
+                if i <= getgenv().HopDelay / 2 and getgenv().Boost then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(Vector3.new(0, 0, -getgenv().BoostStuds))
+                end
+                
+                if i >= getgenv().HopDelay then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(Vector3.new(0, 1, 0))
+                    if getgenv().HopBoost then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(Vector3.new(0, 0, -getgenv().HopBoostStuds))
+                    end
+                    i = 0
+                end
+                if UIS:IsKeyDown(Enum.KeyCode.Space) then
+                    UpDebounce = UpDebounce + 1
+                    i = getgenv().HopDelay - 5
+                    if UpDebounce >= 5 then
+                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(Vector3.new(0, 3, 0))
+                        CY = CY + 3
+                        UpDebounce = 0
+                    else
+                        CY = CY - 0.1
+                    end
+                end
+                if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    if CY >= game.Players.LocalPlayer.Character.HumanoidRootPart.Position.Y - 5 then
+                        DownDebounce = DownDebounce + 1
+                        i = getgenv().HopDelay - 5
+                        if DownDebounce >= 5 then
+                            --game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(Vector3.new(0, -3, 0))
+                            CY = CY - 3
+                            DownDebounce = 0
+                        else
+                            CY = CY + 0.1
+                        end
+                    end
+                end
+                
+                wait()
+                AntiFall:Destroy()
+                Mark:Destroy()
+            end
+            game.Players.LocalPlayer.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+        end
+    end
+end)
+end)
+
+
+TP.Name = "TP"
+TP.Parent = Container_2
+TP.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+TP.BorderSizePixel = 0
+TP.Position = UDim2.new(-0.485294104, 0, -0.0176322423, 0)
+TP.Size = UDim2.new(0, 200, 0, 50)
+TP.AutoButtonColor = false
+TP.Font = Enum.Font.SourceSans
+TP.Text = "Mouse Tp"
+TP.TextColor3 = Color3.fromRGB(255, 255, 255)
+TP.TextSize = 30.000
+local mouseconnection
+TP.MouseButton1Click:Connect(function ()
+	if TPB == false then
+		TPB = true
+		noti("Mouse tp ON")
+		TP.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+		
+
+mouseconnection = mouse.Button1Down:Connect(function()
+lplr.Character.HumanoidRootPart.CFrame = mouse.Hit + Vector3.new(0, 3, 0)
+end)
+
+	else
+		TPB = false
+		if mouseconnection then 
+			mouseconnection:Disconnect()
+			mouseconnection = nil
+		end
+		TP.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+		noti("Mouse Tp off")
+
+	end
+	
+end)
+
+Render.Name = "Render"
+Render.Parent = ScreenGui
+Render.BackgroundColor3 = Color3.fromRGB(16, 16, 16)
+Render.Position = UDim2.new(0.474381059, 0, 0.0241448693, 0)
+Render.Size = UDim2.new(0, 136, 0, 426)
+
+TextLabel_3.Parent = Render
+TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_3.BackgroundTransparency = 1.000
+TextLabel_3.Position = UDim2.new(0.0220588446, 0, 0, 0)
+TextLabel_3.Size = UDim2.new(0, 133, 0, 22)
+TextLabel_3.Font = Enum.Font.SourceSans
+TextLabel_3.Text = "Render"
+TextLabel_3.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_3.TextSize = 30.000
+
+Container_3.Name = "Container"
+Container_3.Parent = Render
+Container_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Container_3.BackgroundTransparency = 1.000
+Container_3.Position = UDim2.new(0, 0, 0.0679012537, 0)
+Container_3.Size = UDim2.new(0, 136, 0, 397)
+
+UIGridLayout_3.Parent = Container_3
+UIGridLayout_3.SortOrder = Enum.SortOrder.LayoutOrder
+UIGridLayout_3.CellPadding = UDim2.new(0, 5, 0, 0)
+UIGridLayout_3.CellSize = UDim2.new(0, 136, 0, 34)
+
+Esp.Name = "Esp"
+Esp.Parent = Container_3
+Esp.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+Esp.BorderSizePixel = 0
+Esp.Size = UDim2.new(0, 200, 0, 50)
+Esp.AutoButtonColor = false
+Esp.Font = Enum.Font.SourceSans
+Esp.Text = "Esp"
+Esp.TextColor3 = Color3.fromRGB(255, 255, 255)
+Esp.TextSize = 30.000
+
+Tracers.Name = "Tracers"
+Tracers.Parent = Container_3
+Tracers.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+Tracers.BorderSizePixel = 0
+Tracers.Size = UDim2.new(0, 200, 0, 50)
+Tracers.AutoButtonColor = false
+Tracers.Font = Enum.Font.SourceSans
+Tracers.Text = "Tracers"
+Tracers.TextColor3 = Color3.fromRGB(255, 255, 255)
+Tracers.TextSize = 30.000
+Tracers.MouseButton1Click:Connect(function()
+	if Tracerb == false then
+		Tracerb = true
+		noti("Tracers On")
+		Tracers.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+		_G.Tracers = true
+
+		local settings = {
+			defaultcolor = Color3.fromRGB(255,0,0),
+			teamcheck = false,
+			teamcolor = true
+		 }
+		
+		 
+			local lplr = game.Players.LocalPlayer
+			local camera = game:GetService("Workspace").CurrentCamera
+			local CurrentCamera = workspace.CurrentCamera
+			local worldToViewportPoint = CurrentCamera.worldToViewportPoint
+		
+			local newVector2, newColor3, newDrawing = Vector2.new, Color3.new, Drawing.new;
+		 local tan, rad = math.tan, math.rad;
+		 local round = function(...) local a = {}; for i,v in next, table.pack(...) do a[i] = math.round(v); end return unpack(a); end
+		 local wtvp = function(...) local a, b = camera.WorldToViewportPoint(camera, ...) return newVector2(a.X, a.Y), b, a.Z end
+		 
+		
+			
+			
+			for i,v in pairs(game.Players:GetChildren()) do
+				local Tracer = Drawing.new("Line")
+				Tracer.Visible = false
+				Tracer.Color = Color3.fromRGB(255,0,0)
+				Tracer.Thickness = 1
+				Tracer.Transparency = 1
+			
+				function tracers()
+					game:GetService("RunService").RenderStepped:Connect(function()
+						if v.Character ~= nil and v.Character:FindFirstChild("Humanoid") ~= nil and v.Character:FindFirstChild("HumanoidRootPart") ~= nil and v ~= lplr and v.Character.Humanoid.Health > 0 then
+							local Vector, OnScreen = camera:worldToViewportPoint(v.Character.HumanoidRootPart.Position)
+			
+							if OnScreen and Tracerb then
+								Tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 1)
+								Tracer.To = Vector2.new(Vector.X, Vector.Y)
+			
+								if _G.TeamCheck and v.TeamColor == lplr.TeamColor then
+									Tracer.Visible = false
+								else
+									Tracer.Visible = true
+								end
+							else
+								Tracer.Visible = false
+							end
+						else
+							Tracer.Visible = false
+						end
+						if _G.Tracers == false then
+							Tracer.Visible = false
+						end
+					end)
+				end
+				coroutine.wrap(tracers)()
+			end
+			
+			game.Players.PlayerAdded:Connect(function(v)
+				local Tracer = Drawing.new("Line")
+				Tracer.Visible = false
+				Tracer.Color = Color3.fromRGB(255,0,0)
+				Tracer.Thickness = 1
+				Tracer.Transparency = 1
+			
+				function tracers()
+					game:GetService("RunService").RenderStepped:Connect(function()
+						if v.Character ~= nil and v.Character:FindFirstChild("Humanoid") ~= nil and v.Character:FindFirstChild("HumanoidRootPart") ~= nil and v ~= lplr and v.Character.Humanoid.Health > 0 then
+							local Vector, OnScreen = camera:worldToViewportPoint(v.Character.HumanoidRootPart.Position)
+			
+							if OnScreen and Tracerb  then
+								Tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 1)
+								Tracer.To = Vector2.new(Vector.X, Vector.Y)
+			
+								if _G.TeamCheck and v.TeamColor == lplr.TeamColor then
+									Tracer.Visible = false
+								else
+									Tracer.Visible = true
+								end
+							else
+								Tracer.Visible = false
+							end
+						else
+							Tracer.Visible = false
+						end
+						if _G.Tracers == false then
+							Tracer.Visible = false
+						end
+					end)
+				end
+				coroutine.wrap(tracers)()
+				end)
+		
+
+	else
+
+		Tracerb = false
+		_G.Tracers = false
+		noti("Tracers off")
+		Tracers.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+	end
+
+end)
+
+
+ImageLabel.Parent = ScreenGui
+ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageLabel.BackgroundTransparency = 1.000
+ImageLabel.Position = UDim2.new(0, 0, -0.0321931727, 0)
+ImageLabel.Size = UDim2.new(0, 215, 0, 158)
+ImageLabel.Image = "http://www.roblox.com/asset/?id=10264788230"
+ImageLabel.ImageColor3 = Color3.fromRGB(59, 0, 255)
+
+-- Scripts:
+
+local function WMYQ_fake_script() -- Combat.LocalScript 
+	local script = Instance.new('LocalScript', Combat)
+
+	local Plr = game.Players.LocalPlayer
+	
+	Plr:GetMouse().KeyDown:Connect(function(K)
+		if K == "m" then
+			script.Parent.Visible = true
+		end
+	end)
+	
+	
+	local Plr = game.Players.LocalPlayer
+	
+	Plr:GetMouse().KeyDown:Connect(function(K)
+		if K == "n" then
+			script.Parent.Visible = false
+		end
+	end)
+end
+coroutine.wrap(WMYQ_fake_script)()
+local function GUEVC_fake_script() -- Blatant.LocalScript 
+	local script = Instance.new('LocalScript', Blatant)
+
+	local Plr = game.Players.LocalPlayer
+	
+	Plr:GetMouse().KeyDown:Connect(function(K)
+		if K == "m" then
+			script.Parent.Visible = true
+		end
+	end)
+	
+	
+	local Plr = game.Players.LocalPlayer
+	
+	Plr:GetMouse().KeyDown:Connect(function(K)
+		if K == "n" then
+			script.Parent.Visible = false
+		end
+	end)
+end
+coroutine.wrap(GUEVC_fake_script)()
+local function XYHNJF_fake_script() -- Render.LocalScript 
+	local script = Instance.new('LocalScript', Render)
+
+	local Plr = game.Players.LocalPlayer
+	
+	Plr:GetMouse().KeyDown:Connect(function(K)
+		if K == "m" then
+			script.Parent.Visible = true
+		end
+	end)
+	
+	
+	local Plr = game.Players.LocalPlayer
+	
+	Plr:GetMouse().KeyDown:Connect(function(K)
+		if K == "n" then
+			script.Parent.Visible = false
+		end
+	end)
+end
+coroutine.wrap(XYHNJF_fake_script)()
