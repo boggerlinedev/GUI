@@ -1,0 +1,42 @@
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
+local ScreenGui = Instance.new("ScreenGui")
+local ImageLabel = Instance.new("ImageLabel")
+local TextLabel = Instance.new("TextLabel")
+
+--Properties:
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+ImageLabel.Parent = ScreenGui
+ImageLabel.BackgroundColor3 = Color3.fromRGB(85, 0, 255)
+ImageLabel.BackgroundTransparency = 1.000
+ImageLabel.Position = UDim2.new(0.336980641, 0, 0.0140845068, 0)
+ImageLabel.Size = UDim2.new(0, 472, 0, 473)
+ImageLabel.Image = "rbxassetid://10276780680"
+ImageLabel.ImageColor3 = Color3.fromRGB(119, 0, 255)
+
+TextLabel.Parent = ScreenGui
+TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.BackgroundTransparency = 1.000
+TextLabel.Position = UDim2.new(0.435634375, 0, 0.589537203, 0)
+TextLabel.Size = UDim2.new(0, 200, 0, 50)
+TextLabel.Font = Enum.Font.ArialBold
+TextLabel.Text = "Loading 4%"
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.TextSize = 30.000
+
+TextLabel.Text = "Loading 3%"
+wait(1)
+TextLabel.Text = "Loading 2%"
+wait(1.6)
+TextLabel.Text = "Loading 1%"
+wait(0.7)
+TextLabel:Destroy()
+wait(1)
+ImageLabel:Destroy()
+wait(0.10)
+loadstring(game:HttpGet(("https://raw.githubusercontent.com/boggerlinedev/GUI/main/alias%20script"), true))()
