@@ -449,6 +449,7 @@ local args = {
 }
 
 game:GetService("Players").LocalPlayer.Character.combat.update:FireServer(unpack(args))
+wait()
 end
 
 	else
