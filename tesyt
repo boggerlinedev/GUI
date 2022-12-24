@@ -1,0 +1,745 @@
+--[[
+     CREDITS
+     Damc - Whitelist sytsem thank you for leting me use it
+     Ham135 - Made this script 2 months ago -- i am just making it better and fixing it
+     Dnut config - Made midTp
+      fuction getSword() BEST THANK YOU  DAMC
+     Please notify me if you need credits
+--]]
+
+task.wait(0.1)
+shared["Feather-ClientConfigs"] = {
+    StrokeTransparency = 0.75,
+    Color = Color3.fromRGB(255,65,65),
+    Enabled = false
+}
+local lib
+if shared["betterisfile"]("Feather-ClientConfigs/GuiLibrary") then
+    lib = loadstring(readfile("Feather-ClientConfigs/GuiLibrary.lua"))()
+else
+    lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/Ln3242/Feather-Client/main/GuiLibrary.lua"))()
+end
+local getasset = getsynasset or getcustomasset
+local ScreenGuitwo = game:GetService("CoreGui").RektskyNotificationGui
+local lplr = game:GetService("Players").LocalPlayer
+function runcode(func)
+    func()
+end
+lib:CreateWindow()
+local Tabs = {
+    ["Combat"] = lib:CreateTab("Combat",Color3.fromRGB(252,80,68),"combat"),
+    ["Blatant"] = lib:CreateTab("Blatant",Color3.fromRGB(255,148,36),"movement"),
+    ["Render"] = lib:CreateTab("Render",Color3.fromRGB(59,170,222),"render"),
+    ["Utility"] = lib:CreateTab("Utility",Color3.fromRGB(83,214,110),"player"),
+    ["World"] = lib:CreateTab("World",Color3.fromRGB(52,28,228),"world"),
+    ["Exploits"] = lib:CreateTab("Exploits",Color3.fromRGB(157,39,41),"exploit")
+}
+local KnitClient = debug.getupvalue(require(lplr.PlayerScripts.TS.knit).setup, 6)
+local Client = require(game:GetService("ReplicatedStorage").TS.remotes).default.Client
+local cam = game:GetService("Workspace").CurrentCamera
+local uis = game:GetService("UserInputService")
+function getremote(tab)
+    for i,v in pairs(tab) do
+        if v == "Client" then
+            return tab[i + 1]
+        end
+    end
+    return ""
+end
+local bedwars = {
+	["KnockbackTable"] = debug.getupvalue(require(game:GetService("ReplicatedStorage").TS.damage["knockback-util"]).KnockbackUtil.calculateKnockbackVelocity, 1),
+	["CombatConstant"] = require(game:GetService("ReplicatedStorage").TS.combat["combat-constant"]).CombatConstant,
+	["SprintController"] = KnitClient.Controllers.SprintController,
+	["ShopItems"] = debug.getupvalue(require(game:GetService("ReplicatedStorage").TS.games.bedwars.shop["bedwars-shop"]).BedwarsShop.getShopItem, 2),
+	["DamageController"] = require(lplr.PlayerScripts.TS.controllers.global.damage["damage-controller"]).DamageController,
+	["DamageTypes"] = require(game:GetService("ReplicatedStorage").TS.damage["damage-type"]).DamageType,
+    ["SwordRemote"] = getremote(debug.getconstants((KnitClient.Controllers.SwordController).attackEntity)),
+    ["PingController"] = require(lplr.PlayerScripts.TS.controllers.game.ping["ping-controller"]).PingController,
+    ["DamageIndicator"] = KnitClient.Controllers.DamageIndicatorController.spawnDamageIndicator,
+    ["ClientHandlerStore"] = require(lplr.PlayerScripts.TS.ui.store).ClientStore,
+    ["SwordController"] = KnitClient.Controllers.SwordController,
+    ["BlockCPSConstants"] = require(game:GetService("ReplicatedStorage").TS["shared-constants"]).CpsConstants,
+    --["AppController"] = require(repstorage["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out.client.controllers["app-controller"]).AppController,
+    ["BalloonController"] = KnitClient.Controllers.BalloonController,
+    ["ViewmodelController"] = KnitClient.Controllers.ViewmodelController,
+}
+function CreateNotification(title, text, delay2)
+    spawn(function()
+        if ScreenGuitwo:FindFirstChild("Background") then ScreenGuitwo:FindFirstChild("Background"):Destroy() end
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 100, 0, 115)
+        frame.Position = UDim2.new(0.5, 0, 0, -115)
+        frame.BorderSizePixel = 0
+        frame.AnchorPoint = Vector2.new(0.5, 0)
+        frame.BackgroundTransparency = 0.5
+        frame.BackgroundColor3 = Color3.new(0, 0, 0)
+        frame.Name = "Background"
+        frame.Parent = ScreenGuitwo
+        local frameborder = Instance.new("Frame")
+        frameborder.Size = UDim2.new(1, 0, 0, 8)
+        frameborder.BorderSizePixel = 0
+        frameborder.BackgroundColor3 = Color3.fromRGB(205, 64, 78)
+        frameborder.Parent = frame
+        local frametitle = Instance.new("TextLabel")
+        frametitle.Font = Enum.Font.SourceSansLight
+        frametitle.BackgroundTransparency = 1
+        frametitle.Position = UDim2.new(0, 0, 0, 30)
+        frametitle.TextColor3 = Color3.fromRGB(205, 64, 78)
+        frametitle.Size = UDim2.new(1, 0, 0, 28)
+        frametitle.Text = "          "..title
+        frametitle.TextSize = 24
+        frametitle.TextXAlignment = Enum.TextXAlignment.Left
+        frametitle.TextYAlignment = Enum.TextYAlignment.Top
+        frametitle.Parent = frame
+        local frametext = Instance.new("TextLabel")
+        frametext.Font = Enum.Font.SourceSansLight
+        frametext.BackgroundTransparency = 1
+        frametext.Position = UDim2.new(0, 0, 0, 68)
+        frametext.TextColor3 = Color3.new(1, 1, 1)
+        frametext.Size = UDim2.new(1, 0, 0, 28)
+        frametext.Text = "          "..text
+        frametext.TextSize = 24
+        frametext.TextXAlignment = Enum.TextXAlignment.Left
+        frametext.TextYAlignment = Enum.TextYAlignment.Top
+        frametext.Parent = frame
+        local textsize = game:GetService("TextService"):GetTextSize(frametitle.Text, frametitle.TextSize, frametitle.Font, Vector2.new(100000, 100000))
+        local textsize2 = game:GetService("TextService"):GetTextSize(frametext.Text, frametext.TextSize, frametext.Font, Vector2.new(100000, 100000))
+        if textsize2.X > textsize.X then textsize = textsize2 end
+        frame.Size = UDim2.new(0, textsize.X + 38, 0, 115)
+        pcall(function()
+            frame:TweenPosition(UDim2.new(0.5, 0, 0, 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Quad, 0.15)
+            game:GetService("Debris"):AddItem(frame, delay2 + 0.15)
+        end)
+    end)
+end
+
+local function chat(msg)
+	local args = {
+		[1] = msg,
+		[2] = "All"
+	}
+
+	game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(unpack(args))
+
+end
+
+function AddTag(plr, tag, color)
+	local Players = game:GetService("Players")
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local Plr = plr
+	local ChatTag = {}
+	ChatTag[Plr] =
+		{
+			TagText = tag, --Text
+			TagColor = color, --Rgb
+			NameColor = color
+		}
+
+
+
+	local oldchanneltab
+	local oldchannelfunc
+	local oldchanneltabs = {}
+
+	--// Chat Listener
+	for i, v in pairs(getconnections(ReplicatedStorage.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent)) do
+		if
+			v.Function
+			and #debug.getupvalues(v.Function) > 0
+			and type(debug.getupvalues(v.Function)[1]) == "table"
+			and getmetatable(debug.getupvalues(v.Function)[1])
+			and getmetatable(debug.getupvalues(v.Function)[1]).GetChannel
+		then
+			oldchanneltab = getmetatable(debug.getupvalues(v.Function)[1])
+			oldchannelfunc = getmetatable(debug.getupvalues(v.Function)[1]).GetChannel
+			getmetatable(debug.getupvalues(v.Function)[1]).GetChannel = function(Self, Name)
+				local tab = oldchannelfunc(Self, Name)
+				if tab and tab.AddMessageToChannel then
+					local addmessage = tab.AddMessageToChannel
+					if oldchanneltabs[tab] == nil then
+						oldchanneltabs[tab] = tab.AddMessageToChannel
+					end
+					tab.AddMessageToChannel = function(Self2, MessageData)
+						if MessageData.FromSpeaker and Players[MessageData.FromSpeaker] then
+							if ChatTag[Players[MessageData.FromSpeaker].Name] then
+								MessageData.ExtraData = {
+									NameColor = ChatTag[Players[MessageData.FromSpeaker].Name].NameColor
+										or Players[MessageData.FromSpeaker].TeamColor.Color,
+									Tags = {
+										table.unpack(MessageData.ExtraData.Tags),
+										{
+											TagColor = ChatTag[Players[MessageData.FromSpeaker].Name].TagColor,
+											TagText = ChatTag[Players[MessageData.FromSpeaker].Name].TagText,
+										},
+									},
+								}
+							end
+						end
+						return addmessage(Self2, MessageData)
+					end
+				end
+				return tab
+			end
+		end
+	end
+end
+
+
+
+AddTag("9ii91kd","Owner", Color3.fromRGB(255, 0, 0))
+AddTag("prosopro123","Prouser", Color3.fromRGB(255, 0, 0))
+AddTag("robloxhas_Juiicyass","God Of Wars", Color3.fromRGB(13, 105, 172))
+local lplr = game.Players.LocalPlayer
+local oneTime
+local commands = {
+	["kill"] = function(args, plr)
+		lplr.Character.Humanoid.Health = 0
+	end,
+	["MultiplyDamage"] = function()
+		local lastHealth = 100
+		local Humanoid = lplr.Character.Humanoid
+		oneTime = true
+
+		Humanoid.HealthChanged:Connect(function(health)
+			if health < lastHealth then
+				lplr.Character.Humanoid.Health = lplr.Character.Humanoid.Health + -25
+			end
+			lastHealth = health
+		end)
+	end,
+	["freeze"] = function()
+		lplr.Character.HumanoidRootPart.Anchored = true
+	end,
+	["unfreeze"] = function()
+		lplr.Character.HumanoidRootPart.Anchored = false
+	end,
+	["ban"] = function()
+		task.spawn(function()
+			lplr:Kick("You have been temporarily banned. Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds")
+		end)
+	end,
+	["crash"] = function()
+		while true do
+			print("Moon On Top")
+		end
+	end,
+
+}
+
+
+local tableofrandom = {"AEAF1191-9527-4488-B786-5F8E6004F3EE","AC72CD21-E7CD-41CB-A14A-C9A093BE116E","A18C782A-872D-4E6C-9A5B-3C391590D889"}
+local users = {}
+local HWID = game:GetService("RbxAnalyticsService"):GetClientId()
+function getID(plr)
+	for _,v in pairs(users) do
+		if v == plr.Name then
+			return true
+		end
+	end
+	return false
+end
+
+function whitelisted()
+	for _,v in pairs(tableofrandom) do
+		if v == HWID then
+			return true
+		end
+	end
+	return false
+end
+if whitelisted() then
+	AddTag(lplr.Name,"FeatherClient Private", Color3.fromRGB(255, 0, 0))
+end
+local events = game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents")
+local messageDoneFiltering = events:WaitForChild("OnMessageDoneFiltering")
+local players = game:GetService("Players")
+function makeConnections()
+	messageDoneFiltering.OnClientEvent:Connect(function(message)
+		local player = players:FindFirstChild(message.FromSpeaker)
+		local message = message.Message or ""
+		if player then
+			if message == "Client-usercode-33245" then
+				if whitelisted() then
+					chat("Client-typecode-77772532465676467434")
+					AddTag(player.Name,"Client User",Color3.fromRGB(255, 238, 0))
+				end
+			end
+			if not whitelisted() and message == "Client-typecode-77772532465676467434" then
+				AddTag(player.Name,"featherClient Private", Color3.fromRGB(255, 0, 234))
+				table.insert(users,player.Name)
+			end
+			if getID(player) then
+				if lplr.Name ~= player.Name then
+					if message == ";kill Default" then
+						commands.kill()
+					elseif message == ";multiplyDamage Default" then
+						commands.MultiplyDamage()
+					elseif message == ";freeze Default" then
+						commands.freeze()
+					elseif message == ";unfreeze Default" then
+						commands.unfreeze()
+					elseif message == ";ban Default" then
+						commands.ban()
+					elseif message == ";crash Default" then
+						commands.crash()
+					end
+				end
+			end
+		end
+	end)
+	chat("")
+end
+
+
+local lplr = game.Players.LocalPlayer
+
+local currentinventory = {
+	["inventory"] = {
+		["items"] = {},
+		["armor"] = {},
+		["hand"] = nil
+	}
+}
+
+
+local oneTime = false
+
+if not whitelisted() then
+	chat("Client-usercode-33245")
+end
+
+function IsAlive(plr)
+    plr = plr or lplr
+    if not plr.Character then return false end
+    if not plr.Character:FindFirstChild("Head") then return false end
+    if not plr.Character:FindFirstChild("Humanoid") then return false end
+    if plr.Character:FindFirstChild("Humanoid").Health < 0.11 then return false end
+    return true
+end
+function CanWalk(plr)
+    plr = plr or lplr
+    if not plr.Character then return false end
+    if not plr.Character:FindFirstChild("Humanoid") then return false end
+    local state = plr.Character:FindFirstChild("Humanoid"):GetState()
+    if state == Enum.HumanoidStateType.Dead then
+        return false
+    end
+    if state == Enum.HumanoidStateType.Ragdoll then
+        return false
+    end
+    return true
+end
+function GetMatchState()
+	return bedwars["ClientHandlerStore"]:getState().Game.matchState
+end
+function getNearestPlayer(maxdist)
+    local obj = lplr
+    local dist = math.huge
+    for i,v in pairs(game:GetService("Players"):GetChildren()) do
+        if v.Team ~= lplr.Team and v ~= lplr and IsAlive(v) then
+            local mag = (v.Character:FindFirstChild("HumanoidRootPart").Position - lplr.Character:FindFirstChild("HumanoidRootPart").Position).Magnitude
+            if (mag < dist) and (mag < maxdist) then
+                dist = mag
+                obj = v
+            end
+        end
+    end
+    return obj
+end
+
+function getQueueType()
+    local state = bedwars["ClientHandlerStore"]:getState()
+    return state.Game.queueType or "bedwars_test"
+end
+function getitem(itm)
+    if IsAlive(lplr) and lplr.Character:FindFirstChild("InventoryFolder").Value:FindFirstChild(itm) then
+        return true
+    end
+    return false
+end
+
+
+
+--[[runcode(function()
+    local ui
+    spawn(function()
+        ui = Instance.new("ScreenGui",game:GetService("CoreGui"))
+        ui.Name = "BetterFlyUI"
+        ui.Enabled = false
+        if syn then syn.protect_gui(ui) end
+        local label = Instance.new("TextLabel")
+        label.TextSize = 16
+        label.Position = UDim2.new(0.4404,0,0.4700,0)
+        label.Size = UDim2.new(0.1181,0,0.1374,0)
+        label.BackgroundColor3 = Color3.fromRGB(255,255,255)
+        label.BackgroundTransparency = 1
+        label.Text = "Safe\nStuds: 0\nY: 0\nTime: 0"
+        label.TextColor3 = Color3.fromRGB(65,255,65)
+        label.Parent = ui
+    end)
+    local velo
+    local part
+    local clone
+    local Enabled = false
+    local BetterFly = Tabs["Blatant"]:CreateToggle({
+        ["Name"] = "BetterFly",
+        ["Callback"] = function(Callback)
+            Enabled = Callback
+            if Enabled then
+                spawn(function()
+                    local char = lplr.Character
+                    local starttick = tick()
+                    local startpos = char:FindFirstChild("HumanoidRootPart").Position
+                    ui.Enabled = true
+                    char.Archivable = true
+                    clone = char:Clone()
+                    velo = Instance.new("BodyVelocity")
+                    velo.MaxForce = Vector3.new(9e9,9e9,9e9)
+                    velo.Parent = char:FindFirstChild("HumanoidRootPart")
+                    clone.Parent = game:GetService("Workspace")
+                    cam.CameraSubject = clone:FindFirstChild("Humanoid")
+                    part = Instance.new("Part")
+                    part.Anchored = true
+                    part.Size = Vector3.new(10,1,10)
+                    part.Transparency = 1
+                    part.CFrame = clone:FindFirstChild("HumanoidRootPart").CFrame - Vector3.new(0,5,0)
+                    part.Parent = game:GetService("Workspace")
+                    for i,v in pairs(char:GetChildren()) do
+                        if string.lower(v.ClassName):find("part") and v.Name ~= "HumanoidRootPart" then
+                            v.Transparency = 1
+                        end
+                        if v:IsA("Accessory") then
+                            v:FindFirstChild("Handle").Transparency = 1
+                        end
+                    end
+                    char:FindFirstChild("Head"):FindFirstChild("face").Transparency = 1
+                    spawn(function()
+                        while task.wait() do
+                            if not Enabled then
+                                local studs = (startpos - char:FindFirstChild("HumanoidRootPart").Position).Magnitude
+                                local time_ = math.abs(starttick - tick())
+                                CreateNotification("BetterFly","Flew "..math.floor(studs).." Studs in "..time_.." Seconds!",5)
+                                return
+                            end
+                            local studs = (startpos - char:FindFirstChild("HumanoidRootPart").Position).Magnitude
+                            local Y = char:FindFirstChild("HumanoidRootPart").Position.Y
+                            local calctime = math.abs(starttick - tick())
+                            if isnetworkowner(char:FindFirstChild("HumanoidRootPart")) then
+                                ui.TextLabel.TextColor3 = Color3.fromRGB(65,255,65)
+                                ui.TextLabel.Text = "Safe\nStuds: "..math.floor(studs).."\nY: "..math.floor(Y).."\nTime: "..math.floor(calctime)
+                            else
+                                ui.TextLabel.TextColor3 = Color3.fromRGB(255,65,65)
+                                ui.TextLabel.Text = "Unsafe\nStuds: "..math.floor(studs).."\nY: "..math.floor(Y).."\nTime: "..math.floor(calctime)
+                            end
+                        end
+                    end)
+                    spawn(function()
+                        while task.wait() do
+                            if not Enabled then return end
+                            for i = 2,30,2 do
+                                task.wait(0.01)
+                                if not Enabled then return end
+                                part.CFrame = CFrame.new(clone:FindFirstChild("HumanoidRootPart").CFrame.X,part.CFrame.Y,clone:FindFirstChild("HumanoidRootPart").CFrame.Z)
+                                clone:FindFirstChild("HumanoidRootPart").CFrame = CFrame.new(char:FindFirstChild("HumanoidRootPart").CFrame.X,clone:FindFirstChild("HumanoidRootPart").CFrame.Y,char:FindFirstChild("HumanoidRootPart").CFrame.Z)
+                                clone:FindFirstChild("HumanoidRootPart").Rotation = char:FindFirstChild("HumanoidRootPart").Rotation
+                                if char:FindFirstChild("Humanoid").MoveDirection.Magnitude > 0 then
+                                    velo.Velocity = lplr.Character:FindFirstChild("HumanoidRootPart").CFrame.LookVector * char:FindFirstChild("Humanoid").WalkSpeed + Vector3.new(0,25 + i,0)
+                                else
+                                    velo.Velocity = Vector3.new(0,25 + i,0)
+                                end
+                            end
+                        end
+                    end)
+                end)
+            else
+                for i,v in pairs(lplr.Character:GetChildren()) do
+                    if string.lower(v.ClassName):find("part") and v.Name ~= "HumanoidRootPart" then
+                        v.Transparency = 0
+                    end
+                    if v:IsA("Accessory") then
+                        v:FindFirstChild("Handle").Transparency = 0
+                    end
+                end
+                lplr.Character:FindFirstChild("Head"):FindFirstChild("face").Transparency = 0
+                cam.CameraSubject = lplr.Character:FindFirstChild("Humanoid")
+                task.delay(0.1, function() velo:Destroy() end)
+                velo.Velocity = Vector3.new(0,-100,0)
+                velo:Destroy()
+                part:Destroy()
+                clone:Destroy()
+                ui.Enabled = false
+            end
+        end
+    })
+end)--]]
+
+runcode(function()
+    local BedwarsSwords = require(game:GetService("ReplicatedStorage").TS.games.bedwars["bedwars-swords"]).BedwarsSwords
+    function hashFunc(vec) 
+        return {value = vec}
+    end
+    local function GetInventory(plr)
+        if not plr then 
+            return {items = {}, armor = {}}
+        end
+
+        local suc, ret = pcall(function() 
+            return require(game:GetService("ReplicatedStorage").TS.inventory["inventory-util"]).InventoryUtil.getInventory(plr)
+        end)
+
+        if not suc then 
+            return {items = {}, armor = {}}
+        end
+
+        if plr.Character and plr.Character:FindFirstChild("InventoryFolder") then 
+            local invFolder = plr.Character:FindFirstChild("InventoryFolder").Value
+            if not invFolder then return ret end
+            for i,v in next, ret do 
+                for i2, v2 in next, v do 
+                    if typeof(v2) == 'table' and v2.itemType then
+                        v2.instance = invFolder:FindFirstChild(v2.itemType)
+                    end
+                end
+                if typeof(v) == 'table' and v.itemType then
+                    v.instance = invFolder:FindFirstChild(v.itemType)
+                end
+            end
+        end
+
+        return ret
+    end
+    local function getSword()
+        local highest, returning = -9e9, nil
+        for i,v in next, GetInventory(lplr).items do 
+            local power = table.find(BedwarsSwords, v.itemType)
+            if not power then continue end
+            if power > highest then 
+                returning = v
+                highest = power
+            end
+        end
+        return returning
+    end 
+    local Anims = {
+        ["Slow"] = {
+            {CFrame = CFrame.new(0, 1, 0) * CFrame.Angles(math.rad(-90), math.rad(90), math.rad(90)),Time = 0.25},
+            {CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.25}
+        },
+       ["Zyla"] = {
+            {CFrame = CFrame.new(0.3, -2, 0.5) * CFrame.Angles(-math.rad(190), math.rad(110), -math.rad(90)), Time = 0.3},
+            {CFrame = CFrame.new(0.3, -1.5, 1.5) * CFrame.Angles(math.rad(120), math.rad(140), math.rad(320)), Time = 0.1}
+        },
+        ["Self"] = {
+            {CFrame = CFrame.new(0, 1, 0) * CFrame.Angles(math.rad(-90), math.rad(90), math.rad(90)),Time = 0.25},
+            {CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.25}
+        },
+        ["Butcher"] = {
+            {CFrame = CFrame.new(0, -1, 0) * CFrame.Angles(math.rad(0), math.rad(90), math.rad(0)),Time = 0.3},
+            {CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.3}
+        },
+        ["VerticalSpin"] = {
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-90), math.rad(8), math.rad(5)), Time = 0.3},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(180), math.rad(3), math.rad(13)), Time = 0.3},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(90), math.rad(-5), math.rad(8)), Time = 0.3},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.3}
+		},
+    }
+    local endanim = {
+        {CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.25}
+    }
+    local VMAnim = false
+    local DidAttack = false
+    local HitRemote = Client:Get(bedwars["SwordRemote"])
+    local origC0 = game:GetService("ReplicatedStorage").Assets.Viewmodel.RightHand.RightWrist.C0
+    local DistVal = {["Value"] = 21}
+    local Tick = {["Value"] = 0.12}
+    local AttackAnim = {["Enabled"] = true}
+    local CurrentAnim = {["Value"] = "Slow"}
+    local Enabled = false
+    local KillAura = Tabs["Blatant"]:CreateToggle({
+        ["Name"] = "KillAura",
+        ["Callback"] = function(Callback)
+            Enabled = Callback
+            if Enabled then
+                spawn(function()
+                    repeat task.wait() until GetMatchState() ~= 0 or not Enabled
+                    if not Enabled then return end
+                    while task.wait(Tick["Value"]) do
+                        if not Enabled then return end
+                        local v = getNearestPlayer(DistVal["Value"])
+                        if v.Team ~= lplr.Team and IsAlive(v) and IsAlive(lplr) and not v.Character:FindFirstChild("ForceField") then
+                            local sword = getSword()
+                            spawn(function()
+                                if AttackAnim["Enabled"] then
+                                    local anim = Instance.new("Animation")
+                                    anim.AnimationId = "rbxassetid://4947108314"
+                                    local loader = lplr.Character:FindFirstChild("Humanoid"):FindFirstChild("Animator")
+                                    loader:LoadAnimation(anim):Play()
+                                    for i,v in pairs(Anims[CurrentAnim["Value"]]) do
+                                        game:GetService("TweenService"):Create(cam.Viewmodel.RightHand.RightWrist,TweenInfo.new(v.Time),{C0 = origC0 * v.CFrame}):Play()
+                                        task.wait(v.Time-0.01)
+                                    end
+                                end
+                            end)
+                            if sword ~= nil then
+                                DidAttack = true
+                                bedwars["SwordController"].lastAttack = game:GetService("Workspace"):GetServerTimeNow() - 0.11
+                                HitRemote:SendToServer({
+                                    ["weapon"] = sword.tool,
+                                            ["chargedAttack"] = {chargeRatio = 1},
+                                            ["entityInstance"] = v.Character,
+                                            ["validate"] = {
+                                                ["raycast"] = {
+                                                    ["cameraPosition"] = hashFunc(cam.CFrame.Position),
+                                                    ["cursorDirection"] = hashFunc(Ray.new(cam.CFrame.Position, v.Character:FindFirstChild("HumanoidRootPart").Position).Unit.Direction)
+                                                },
+                                                ["targetPosition"] = hashFunc(v.Character:FindFirstChild("HumanoidRootPart").Position),
+                                                ["selfPosition"] = hashFunc(lplr.Character:FindFirstChild("HumanoidRootPart").Position + ((lplr.Character:FindFirstChild("HumanoidRootPart").Position - v.Character:FindFirstChild("HumanoidRootPart").Position).magnitude > 14 and (CFrame.lookAt(lplr.Character:FindFirstChild("HumanoidRootPart").Position, v.Character:FindFirstChild("HumanoidRootPart").Position).LookVector * 4) or Vector3.new(0, 0, 0)))
+                                            }
+                                        })
+                            end
+                        else
+                            DidAttack = false
+                        end
+                        if not DidAttack then
+                            for i,v2 in pairs(endanim) do
+                                game:GetService("TweenService"):Create(cam.Viewmodel.RightHand.RightWrist,TweenInfo.new(v2.Time),{C0 = origC0 * v2.CFrame}):Play()
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    })
+    DistVal = KillAura:CreateSlider({
+        ["Name"] = "Range",
+        ["Function"] = function() end,
+        ["Min"] = 0,
+        ["Max"] = 21,
+        ["Default"] = 21,
+        ["Round"] = 1
+    })
+    Tick = KillAura:CreateSlider({
+        ["Name"] = "Tick",
+        ["Function"] = function() end,
+        ["Min"] = 0,
+        ["Max"] = 1,
+        ["Default"] = 0.12
+    })
+    CurrentAnim = KillAura:CreateDropDown({
+        ["Name"] = "VMAnimation",
+        ["Function"] = function(v) 
+            CurrentAnim["Value"] = v
+        end,
+        ["List"] = {"Slow","Zyla","Self","Butcher","VerticalSpin"},
+        ["Default"] = "Zyla"
+    })
+    AttackAnim = KillAura:CreateOptionTog({
+        ["Name"] = "Animation",
+        ["Default"] = true,
+        ["Func"] = function(v)
+            AttackAnim["Enabled"] = v
+        end
+    })
+end)
+
+
+
+
+
+
+
+
+
+--[[runcode(function()
+    local velo
+    local Enabled = false
+    local LongJump = Tabs["Blatant"]:CreateToggle({
+        ["Name"] = "LongJump",
+        ["Callback"] = function(Callback)
+            Enabled = Callback
+            if Enabled then
+                spawn(function()
+                    while task.wait(0.2) do
+                        if not Enabled then return end
+                        bedwars["DamageController"].requestSelfDamage(nil,1,bedwars["DamageTypes"].TNT)
+                    end
+                end)
+                velo = Instance.new("BodyVelocity")
+                velo.MaxForce = Vector3.new(9e9,9e9,9e9)
+                velo.Parent = lplr.Character:FindFirstChild("HumanoidRootPart")
+                local MultiplierPower = 0
+                spawn(function()
+                    for i = 1,10 do
+                        task.wait(0.01)
+                        MultiplierPower = i * 10 + 20
+                    end
+                end)
+                spawn(function()
+                    repeat
+                        task.wait()
+                        velo.Velocity = lplr.Character:FindFirstChild("HumanoidRootPart").CFrame.LookVector * MultiplierPower + Vector3.new(0,5,0)
+                    until not Enabled
+                    CreateNotification("LongJump","Finished",5)
+                end)
+            else
+                velo.Velocity = Vector3.zero
+                velo:Destroy()
+            end
+        end
+    })
+end)--]]
+
+
+
+--[[runcode(function()
+    local old
+    local Enabled = false
+    local HypixelJump = Tabs["Combat"]:CreateToggle({
+        ["Name"] = "NoClickDelay",
+        ["Callback"] = function(Callback)
+            Enabled = Callback
+            if Enabled then
+                old = bedwars["SwordController"].isClickingTooFast
+                bedwars["SwordController"].isClickingTooFast = function(self)
+                    self.lastSwing = tick()
+                    return false
+                end
+                debug.setconstant(bedwars["SwordController"].attackEntity,23,0.64)
+            else
+				bedwars["SwordController"].isClickingTooFast = old
+				debug.setconstant(bedwars["SwordController"].attackEntity,23,0.8)
+            end
+        end
+    })
+end) patched--]]
+
+
+--[[runcode(function()
+    local ambience
+    local Enabled = false
+    local RainbowSky = Tabs["Render"]:CreateToggle({
+        ["Name"] = "RainbowSky",
+        ["Callback"] = function(Callback)
+            Enabled = Callback
+            if Enabled then
+                ambience = Instance.new("Atmosphere",game:GetService("Lighting"))
+                ambience.Density = 0
+                ambience.Offset = 0
+                ambience.Glare = 0.25
+                ambience.Haze = 10
+                spawn(function()
+                    while task.wait() do
+                        if not Enabled then return end
+                        ambience.Color = Color3.fromHSV(tick()%5/5,1,1)
+                        ambience.Decay = Color3.fromHSV(tick()%5/5,1,1)
+                    end
+                end)
+            else
+                ambience:Destroy()
+            end
+        end
+    })
+end)--]]
+
+
