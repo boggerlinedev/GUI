@@ -76,7 +76,7 @@ ErrorMessage.Size = UDim2.new(0, 278, 0, 61)
 
 SideT.Name = "SideT"
 SideT.Parent = ErrorMessage
-SideT.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+SideT.BackgroundColor3 = getgenv().HUDColor
 SideT.BorderColor3 = Color3.fromRGB(0, 0, 0)
 SideT.BorderSizePixel = 0
 SideT.Position = UDim2.new(0.980000019, 3, -0.00100000005, 0)
@@ -110,7 +110,7 @@ Togg.Position = UDim2.new(0.197841853, 0, 2.98023224e-08, 0)
 Togg.Size = UDim2.new(0, 206, 0, 26)
 Togg.Font = Enum.Font.ArialBold
 Togg.Text = "Toggle"
-Togg.TextColor3 = Color3.fromRGB(255, 0, 4)
+Togg.TextColor3 = getgenv().HUDColor
 Togg.TextSize = 18.000
 Togg.TextWrapped = true
 Togg.TextXAlignment = Enum.TextXAlignment.Left
@@ -139,7 +139,7 @@ ErrorIcon.Position = UDim2.new(0.809352517, 0, 0.16393441, 0)
 ErrorIcon.Rotation = 180.000
 ErrorIcon.Size = UDim2.new(0.200000003, -20, 1, -20)
 ErrorIcon.Image = "rbxasset://textures/ui/Emotes/ErrorIcon.png"
-ErrorIcon.ImageColor3 = Color3.fromRGB(255, 0, 4)
+ErrorIcon.ImageColor3 = getgenv().HUDColor
 ErrorIcon.ScaleType = Enum.ScaleType.Fit
 
 AsspectRatioConstraint_2.Name = "AsspectRatioConstraint_2"
