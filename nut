@@ -1,0 +1,136 @@
+local cloneref = cloneref or function(ref) 
+    return ref
+end
+
+local TweenService = cloneref(game:GetService("TweenService"))
+local CoreGui
+
+if gethui then
+    CoreGui = cloneref(gethui())
+elseif gethiddengui then
+    CoreGui = cloneref(gethiddengui())
+else
+    CoreGui = cloneref(game:GetService("CoreGui"))
+end
+
+local Debris = cloneref(game:GetService("Debris"))
+
+return function(Arguments)
+    coroutine.resume(coroutine.create(function()
+        local Text = Arguments.Text or "lorem ipsum"
+        local Duration = Arguments.Duration or 5
+
+        -- Instances:
+
+        local gui
+        if CoreGui:FindFirstChild("Error") then
+            gui = CoreGui:FindFirstChild("Error")
+        elseif syn and syn.protect_gui and not gethui then
+            gui = Instance.new("ScreenGui")
+            syn.protect_gui(gui)
+            gui.Parent = CoreGui
+        else
+            gui = Instance.new("ScreenGui",CoreGui)
+        end
+        
+        local notification = cloneref(Instance.new("Frame"))
+        local UICorner = cloneref(Instance.new("UICorner"))
+        local notificationscale = cloneref(Instance.new("UIScale"))
+        local notificationicon = cloneref(Instance.new("Frame"))
+        local UICorner_2 = cloneref(Instance.new("UICorner"))
+        local UIScale_2 = cloneref(Instance.new("UIScale"))
+        local notificationname = cloneref(Instance.new("TextLabel"))
+        local notificationtext = cloneref(Instance.new("TextLabel"))
+        
+        
+        --Properties:
+
+        local Children = gui:GetChildren()
+        for i,v in pairs(Children) do
+            local Tween = TweenService:Create(v,TweenInfo.new(0.5,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position = UDim2.new(ErrorMessage.Position.X.Scale, 0, .1, (i*v.AbsoluteSize.Y*1.2))})
+            Tween:Play()
+        end
+
+        gui.Parent = CoreGui
+        gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        gui.Name = "Error"
+   
+notification.Name = "notification"
+notification.Parent = gui
+notification.BackgroundColor3 = Color3.fromRGB(7, 7, 7)
+notification.BackgroundTransparency = 0.500
+notification.BorderColor3 = Color3.fromRGB(0, 0, 0)
+notification.BorderSizePixel = 0
+notification.Position = UDim2.new(-1.11867955e-08, 0, 0.055555556, 0)
+notification.Size = UDim2.new(0, 243, 0, 58)
+
+
+
+UICorner.CornerRadius = UDim.new(0, 24)
+UICorner.Parent = notification
+
+notificationscale.Parent = notification
+notificationscale.Scale = 1.100
+
+notificationicon.Name = "notificationicon"
+notificationicon.Parent = notification
+notificationicon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+notificationicon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+notificationicon.BorderSizePixel = 0
+notificationicon.Position = UDim2.new(0.0228022337, 0, 0.162259102, 0)
+notificationicon.Size = UDim2.new(0, 35, 0, 35)
+
+UICorner_2.CornerRadius = UDim.new(0, 16)
+UICorner_2.Parent = notificationicon
+
+UIScale_2.Parent = notificationicon
+UIScale_2.Scale = 1.100
+
+notificationname.Name = "notificationname"
+notificationname.Parent = notification
+notificationname.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+notificationname.BackgroundTransparency = 9.000
+notificationname.BorderColor3 = Color3.fromRGB(0, 0, 0)
+notificationname.BorderSizePixel = 0
+notificationname.Position = UDim2.new(0.215376422, 0, -0.0101546198, 0)
+notificationname.Size = UDim2.new(0, 60, 0, 30)
+notificationname.Font = Enum.Font.Arial
+notificationname.Text = "Toggle"
+notificationname.TextColor3 = Color3.fromRGB(255, 0, 0)
+notificationname.TextSize = 19.000
+notificationname.TextXAlignment = Enum.TextXAlignment.Left
+
+notificationtext.Name = "notificationtext"
+notificationtext.Parent = notification
+notificationtext.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+notificationtext.BackgroundTransparency = 9.000
+notificationtext.BorderColor3 = Color3.fromRGB(0, 0, 0)
+notificationtext.BorderSizePixel = 0
+notificationtext.Position = UDim2.new(0.215376422, 0, 0.475738764, 0)
+notificationtext.Size = UDim2.new(0, 60, 0, 30)
+notificationtext.Font = Enum.Font.Arial
+notificationtext.Text = "Toggle ".. Text
+notificationtext.TextColor3 = Color3.fromRGB(255, 255, 255)
+notificationtext.TextSize = 18.000
+notificationtext.TextXAlignment = Enum.TextXAlignment.Left
+
+        
+        Debris:AddItem(notification, Duration+4)
+        local info = TweenInfo.new(0.9, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+    TweenService:Create(notificationscale, info, {Scale = 1}):Play()
+    TweenService:Create(notification, info, {BackgroundTransparency = 0.5}):Play()
+    TweenService:Create(notificationname, info, {TextTransparency = 0}):Play()
+    TweenService:Create(notificationtext, info, {TextTransparency = 0}):Play()
+    TweenService:Create(notificationicon, info, {BackgroundTransparency = 0}):Play()
+        task.wait(Duration)
+        TweenService:Create(notificationscale, info, {Scale = 1.1}):Play()
+    TweenService:Create(notification, info, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(notificationname, info, {TextTransparency = 1}):Play()
+    TweenService:Create(notificationtext, info, {TextTransparency = 1}):Play()
+    TweenService:Create(notificationicon, info, {BackgroundTransparency = 1}):Play()
+    task.delay(0.9, function()
+        notification:Destroy()
+    end)
+ 
+    end))
+end
